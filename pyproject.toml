@@ -11,6 +11,9 @@ dependencies = [
   "google-cloud-pubsub",
   "google-cloud-run",
   "pybase62",
+  "shortuuid",
+  "fake-useragent",
+  "aiohttp",
 ]
 
 [project.optional-dependencies]
@@ -25,6 +28,7 @@ cli = [
   "firebase-admin",
   "typer",
   "pyppeteer",
+  "seleniumbase",
   "uvicorn",
   "starlette",
 ]

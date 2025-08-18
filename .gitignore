@@ -8,3 +8,7 @@ venv
 *.log
 .history
 .DS_Store
+**/CapSolver.Browser.Extension-v1.16/assets/config.js
+**/downloaded_files
+data
+demo.py

@@ -23,10 +23,12 @@ def run_job(
         raise Exception(stderr)
 
     jobs_client = JobsClient(credentials=credentials_from_env())
-    job_name = "worker"
-    location = "us-central1"
+    job_name = "test"
+    location = "asia-east1"
     container_override = RunJobRequest.Overrides.ContainerOverride()
-    container_override.args.extend(args)
+    full_args = ["run", "python", "src/main.py"] + list(args)
+    container_override.args.extend(full_args)
+    # container_override.args.extend(args)
     overrides = RunJobRequest.Overrides()
     overrides.container_overrides = [container_override]
     name = f"projects/{getenv('PROJECT_ID')}/locations/{location}/jobs/{job_name}"
