@@ -1,36 +1,22 @@
 import logging
-from typing import Dict, Optional, List
+from typing import Optional
 from bs4 import BeautifulSoup
-import re
+from crawler_kit.modules.general.dtos.crawl_result import ParsedProductData
 
 logger = logging.getLogger(__name__)
 
 
 class EbayParser:
-    def __init__(self):
-        pass
+    def parse_product_page(self, content: str) -> Optional[ParsedProductData]:
+        soup = BeautifulSoup(content, "html.parser")
 
-    def parse_product_page(self, content: str, url: str) -> Optional[Dict]:
-        try:
-            soup = BeautifulSoup(content, "html.parser")
-
-            title = self._extract_title(soup)
-            price = self._extract_price(soup)
-            image = self._extract_image(soup)
-            description = self._extract_description(soup)
-            seller = self._extract_seller(soup)
-
-            return {
-                "url": url,
-                "title": title,
-                "price": price,
-                "image": image,
-                "description": description,
-                "seller": seller,
-            }
-        except Exception as e:
-            logger.error(f"Error parsing product page: {e}")
-            return None
+        return ParsedProductData(
+            title=self._extract_title(soup),
+            price=self._extract_price(soup),
+            thumbnail=self._extract_image(soup),
+            description=self._extract_description(soup),
+            seller=self._extract_seller(soup),
+        )
 
     def _extract_title(self, soup: BeautifulSoup) -> Optional[str]:
         try:

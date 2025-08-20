@@ -39,6 +39,7 @@ def get_extension_path():
 
 headless = True if getenv("HEADLESS", "") == "True" else False
 
+
 class DriverConfig(Dict, Enum):
     Ebay = {
         "browser": "chrome",
@@ -62,4 +63,11 @@ class DriverConfig(Dict, Enum):
         "page_load_strategy": "eager",
         "extension_dir": get_extension_path(),
         "locale_code": "en-US",
+    }
+
+    Pchome = {
+        "browser": "chrome",
+        "headless": headless,
+        "proxy": None,
+        "window_size": "1920,1080",
     }

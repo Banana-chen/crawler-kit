@@ -32,7 +32,7 @@ install:
 	@uv pip install -e ".[firebase,cli,dev]"
 
 tree:
-	@tree -I 'build|__pycache__|*.egg-info|venv|.venv|*.log'
+	@tree -I 'build|__pycache__|*.egg-info|venv|.venv|*.log|downloaded_files|CapSolver.Browser.Extension-v1.16'
 
 freeze:
 	@uv pip compile pyproject.toml --extra firebase > src/requirements.txt

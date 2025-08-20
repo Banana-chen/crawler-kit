@@ -19,3 +19,4 @@ else:
     from crawler_kit.entrypoints.pubsub.on_crawling_ebay import *  # noqa: F403
     from crawler_kit.entrypoints.pubsub.on_crawling_amazon import *  # noqa: F403
     from crawler_kit.entrypoints.pubsub.on_crawling_lazada import *  # noqa: F403
+    from crawler_kit.entrypoints.pubsub.on_crawling_pchome import *  # noqa: F403
