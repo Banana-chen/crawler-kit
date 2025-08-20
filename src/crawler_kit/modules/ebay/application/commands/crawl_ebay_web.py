@@ -2,19 +2,17 @@ from crawler_kit.modules.ebay.application.commands.ebay_crawler import EbayCrawl
 from crawler_kit.modules.ebay.application.commands.ebay_parser import EbayParser
 from crawler_kit.modules.ebay.application.commands.ebay_storage_service import (
     EbayStorageService,
+    StorageError,
 )
-from typing import NamedTuple, Optional, Dict
+from crawler_kit.modules.general.dtos.crawl_result import CrawlResult
 from prefect.cache_policies import NO_CACHE
 from prefect import flow, task, get_run_logger
+
 
 class CrawlerError(Exception):
     pass
 
-class CrawlerResult(NamedTuple):
-    url: str
-    content: str
-    parsed_data: Optional[Dict] = None
-    
+
 class EbayWebCrawler:
     def __init__(self, request_delay: int, trace_id: str):
         self.crawler = EbayCrawler(request_delay)
@@ -25,55 +23,66 @@ class EbayWebCrawler:
     @flow(name="crawl-ebay-web")
     def __call__(
         self, url: str, skip_if_exists: bool = False, parse_content: bool = True
-    ) -> bool:
+    ) -> CrawlResult:
         logger = get_run_logger()
         logger.info(f"Processing URL: {url}")
         try:
-            if skip_if_exists and self.storage.check_url_exists(url):
-                logger.info(f"Skipping already crawled content for URL: {url}")
-                return True
+            if skip_if_exists:
+                existing_hash = self.storage.check_url_exists(url)
+                if existing_hash:
+                    logger.info(f"URL already exists, skipping: {url}")
+                    return CrawlResult(url=url, content="")
 
             result = self._crawl_and_parse(url, parse_content)
+
             self._save_result(result)
 
             logger.info(f"Successfully processed URL: {url}")
-            return True
+            return result
 
-        except CrawlerError as e:
-            logger.error(f"Crawler error for URL {url}: {e}")
-            return False
-
+        except (CrawlerError, StorageError) as e:
+            logger.error(f"Error processing URL {url}: {e}")
+            return CrawlResult(url=url, content="")
         except Exception as e:
-            logger.error(f"Unexpected error for URL {url}: {e}")
-            return False
+            logger.error(f"Unexpected error processing URL {url}: {e}")
+            return CrawlResult(url=url, content="")
 
     @task(name="crawl-and-parse", cache_policy=NO_CACHE)
-    def _crawl_and_parse(self, url: str, parse_content: bool = True) -> CrawlerResult:
+    def _crawl_and_parse(self, url: str, parse_content: bool = True) -> CrawlResult:
         logger = get_run_logger()
         logger.info(f"Crawling content from: {url}")
-        raw_content = self.crawler.crawl_page(url)
-        if not raw_content:
+
+        crawl_result = self.crawler.crawl_page(url)
+        if not crawl_result:
             raise CrawlerError(f"Failed to crawl content from URL: {url}")
 
         parsed_data = None
         if parse_content:
             logger.info(f"Parsing content for: {url}")
-            parsed_data = self.parser.parse_product_page(raw_content, url)
+            parsed_data = self.parser.parse_product_page(crawl_result.content)
             if not parsed_data:
                 raise CrawlerError("Failed to parse page content")
 
-        return CrawlerResult(url=url, content=raw_content, parsed_data=parsed_data)
-
-    @task(name="save-crawl-result", cache_policy=NO_CACHE)
-    def _save_result(self, result: CrawlerResult):
-        logger = get_run_logger()
-        logger.info(f"Saving crawl result for URL: {result.url}")
-        success = self.storage.save_crawled_data(
-            self.trace_id,
-            result.url,
-            result.content,
-            parsed_data=result.parsed_data,
+        return CrawlResult(
+            url=url,
+            content=crawl_result.content,
+            parsed_data=parsed_data,
+            screenshot=crawl_result.screenshot,
         )
 
-        if not success:
-            raise CrawlerError(f"Failed to save crawl result for URL: {result.url}")
+    @task(name="save-crawl-result", cache_policy=NO_CACHE)
+    def _save_result(self, crawl_data: CrawlResult) -> None:
+        logger = get_run_logger()
+        logger.info(f"Saving crawl result for URL: {crawl_data.url}")
+        try:
+            self.storage.save_crawled_data(
+                self.trace_id,
+                crawl_data.url,
+                crawl_data.content,
+                parsed_data=crawl_data.parsed_data,
+                screenshot=crawl_data.screenshot,
+            )
+
+        except StorageError as e:
+            logger.error(f"Error saving crawl result for URL {crawl_data.url}: {e}")
+            raise CrawlerError(f"Failed to save crawl result for URL: {crawl_data.url}")

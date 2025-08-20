@@ -11,6 +11,7 @@ from prefect.cache_policies import NO_CACHE
 class CrawlerError(Exception):
     pass
 
+
 class CrawlerResult(NamedTuple):
     url: str
     content: str

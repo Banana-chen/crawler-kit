@@ -2,6 +2,7 @@ from crawler_kit.modules.ebay.application.commands.crawl_ebay_web import EbayWeb
 from shortuuid import uuid
 from os import environ
 
+
 def handle_crawl_ebay_web(url: str, request_delay: int = 1, dev: bool = False):
     trace_id = uuid()
     if not dev:

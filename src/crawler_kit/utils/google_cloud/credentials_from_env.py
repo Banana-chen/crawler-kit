@@ -1,5 +1,8 @@
 from google.oauth2.service_account import Credentials
 from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def credentials_from_env():
@@ -13,3 +16,7 @@ def credentials_from_env():
         )
     )
     return credentials
+
+
+if __name__ == "__main__":
+    credentials_from_env()
