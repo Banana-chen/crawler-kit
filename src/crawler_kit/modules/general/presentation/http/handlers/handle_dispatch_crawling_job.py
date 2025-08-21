@@ -15,12 +15,17 @@ async def handle_dispatch_crawling_job(request: Request):
         if request.path_params.get("type") == "product":
             if request.path_params.get("platform") == "web":
                 publish_message(Topic.Ebay, payload)
-    # if request.path_params.get("source") == "amazon":
-    #     if request.path_params.get("type") == "product":
-    #         if request.path_params.get("platform") == "web":
-    #             publish_message(Topic.Amazon, payload)
+    if request.path_params.get("source") == "amazon":
+        if request.path_params.get("type") == "product":
+            if request.path_params.get("platform") == "web":
+                publish_message(Topic.Amazon, payload)
     if request.path_params.get("source") == "lazada":
         if request.path_params.get("type") == "product":
             if request.path_params.get("platform") == "web":
                 publish_message(Topic.Lazada, payload)
+    if request.path_params.get("source") == "pchome":
+        if request.path_params.get("type") == "product":
+            if request.path_params.get("platform") == "web":
+                publish_message(Topic.Pchome, payload)
+
     return JSONResponse(dict(success=True, data=dict()))

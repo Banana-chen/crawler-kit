@@ -1,4 +1,6 @@
-from crawler_kit.modules.pchome.application.commands.crawl_pchome_web import PchomeWebCrawler
+from crawler_kit.modules.pchome.application.commands.crawl_pchome_web import (
+    PchomeWebCrawler,
+)
 from shortuuid import uuid
 from os import environ
 

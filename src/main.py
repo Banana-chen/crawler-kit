@@ -3,15 +3,12 @@ if __name__ == "__main__":
     from os.path import exists
     from os import environ
 
-    from crawler_kit.entrypoints.cli import typer
-
     environ["RUN_MODE"] = "cli"
+    for env_file in ["src/.env", "src/.env.local"]:
+        if exists(env_file):
+            load_dotenv(env_file, override=True)
 
-    if exists("src/.env"):
-        load_dotenv("src/.env", override=True)
-
-    if exists("src/.env.local"):
-        load_dotenv("src/.env.local", override=True)
+    from crawler_kit.entrypoints.cli import typer
 
     typer()
 else:
