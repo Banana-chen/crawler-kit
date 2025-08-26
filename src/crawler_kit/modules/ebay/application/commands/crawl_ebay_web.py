@@ -6,7 +6,7 @@ from crawler_kit.modules.ebay.application.commands.ebay_storage_service import (
 )
 from crawler_kit.modules.general.dtos.crawl_result import CrawlResult
 from prefect.cache_policies import NO_CACHE
-from prefect import flow, task, get_run_logger
+from prefect import task, get_run_logger
 
 
 class CrawlerError(Exception):
@@ -20,7 +20,7 @@ class EbayWebCrawler:
         self.storage = EbayStorageService()
         self.trace_id = trace_id
 
-    @flow(name="crawl-ebay-web")
+    @task(name="crawl-ebay-web")
     def __call__(
         self, url: str, skip_if_exists: bool = False, parse_content: bool = True
     ) -> CrawlResult:
