@@ -4,7 +4,7 @@ from crawler_kit.infrastructure.webdriver.seleniumbase_manager import (
 )
 from crawler_kit.modules.general.enums.driver_config import DriverConfig
 from prefect.cache_policies import NO_CACHE
-from prefect import flow, get_run_logger, task
+from prefect import task, get_run_logger
 from crawler_kit.infrastructure.converts.png.to_jpg import png_to_jpg
 from crawler_kit.modules.general.dtos.crawl_result import CrawlResult
 
@@ -18,7 +18,7 @@ class EbayCrawler:
         self.request_delay = request_delay
         self.enable_screenshot = enable_screenshot
 
-    @flow(name="crawl-ebay-page")
+    @task(name="crawl-ebay-page")
     def crawl_page(self, url: str) -> CrawlResult:
         logger = get_run_logger()
         logger.info(f"Start crawl page: {url}")

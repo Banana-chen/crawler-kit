@@ -7,7 +7,7 @@ from crawler_kit.infrastructure.webdriver.seleniumbase_manager import (
 )
 from crawler_kit.modules.general.enums.driver_config import DriverConfig
 from prefect.cache_policies import NO_CACHE
-from prefect import flow, get_run_logger, task
+from prefect import get_run_logger, task
 
 
 class CrawlerError(Exception):
@@ -18,7 +18,7 @@ class LazadaCrawler:
     def __init__(self, request_delay: int = 10):
         self.request_delay = request_delay
 
-    @flow(name="crawl-lazada-page")
+    @task(name="crawl-lazada-page")
     def crawl_page(self, url: str) -> Optional[str]:
         logger = get_run_logger()
         logger.info(f"Start crawl page: {url}")
