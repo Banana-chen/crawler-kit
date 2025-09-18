@@ -23,7 +23,7 @@ class EbayParser:
             title = soup.title.text.strip()
             return title
         except Exception as e:
-            logger.error(f"Error extracting title: {e}")
+            logger.warning(f"Error extracting title: {e}")
             return None
 
     def _extract_price(self, soup: BeautifulSoup) -> Optional[str]:
@@ -38,7 +38,7 @@ class EbayParser:
                     price = price_element.text.strip()
                     return price
             except Exception as e:
-                logger.error(f"Error extracting price: {e}")
+                logger.warning(f"Error extracting price: {e}")
                 return None
 
     def _extract_image(self, soup: BeautifulSoup) -> Optional[str]:
@@ -49,7 +49,7 @@ class EbayParser:
                 return image_url
             return None
         except Exception as e:
-            logger.error(f"Error extracting image: {e}")
+            logger.warning(f"Error extracting image: {e}")
             return None
 
     def _extract_description(self, soup: BeautifulSoup) -> Optional[str]:
@@ -60,7 +60,7 @@ class EbayParser:
                 return description_text
             return None
         except Exception as e:
-            logger.error(f"Error extracting description: {e}")
+            logger.warning(f"Error extracting description: {e}")
             return None
 
     def _extract_seller(self, soup: BeautifulSoup) -> Optional[str]:
@@ -72,5 +72,5 @@ class EbayParser:
                     seller_name = seller_element.text.strip()
                     return seller_name
             except Exception as e:
-                logger.error(f"Error extracting seller: {e}")
+                logger.warning(f"Error extracting seller: {e}")
                 return None
