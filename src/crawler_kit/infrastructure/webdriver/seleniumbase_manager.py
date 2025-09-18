@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 class SeleniumBaseManager:
     @classmethod
-    def create_driver(cls, browser, headless, **kwargs) -> Driver:
+    def create_driver(cls, 
+                      browser: str,
+                      headless: bool,
+                      **kwargs) -> Driver:
         driver_options = {"browser": browser, "headless": headless, **kwargs}
 
         start_time = time.time()
@@ -28,7 +31,7 @@ class SeleniumBaseManager:
 
     @classmethod
     @contextmanager
-    def get_driver(cls, browser, headless, **kwargs):
+    def get_driver(cls, browser: str, headless: bool, **kwargs):
         driver = cls.create_driver(browser=browser, headless=headless, **kwargs)
         try:
             yield driver
@@ -46,4 +49,5 @@ if __name__ == "__main__":
         driver.get(
             "https://medium.com/@mkaanaslan99/time-series-forecasting-with-a-basic-transformer-model-in-pytorch-650f116a1018"
         )
-        time.sleep(5)
+        driver.quit()
+        
