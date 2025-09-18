@@ -1,37 +1,46 @@
 [project]
 name = "crawler-kit"
-version = "0.1.0"
-description = ""
-
+version = "0.1.1"
+description = "crawler kit"
 requires-python = ">=3.13,<3.14"
+
 dependencies = [
-  "python-dotenv",
   "httpx",
-  "prefect",
-  "google-cloud-pubsub",
-  "google-cloud-run",
-  "pybase62",
-  "shortuuid",
-  "fake-useragent",
   "aiohttp",
+  "fake-useragent",
+  "pybase62",
+  "python-dotenv",
+  "shortuuid",  
   "Pillow",
 ]
 
 [project.optional-dependencies]
-firebase = [
+cloud = [
+    "google-cloud-pubsub",
+    "google-cloud-run",
+    "firebase_functions",
+    "firebase-admin",
+    "vellox",
+]
+
+workflow = [
+  "prefect",
+]
+
+web = [
   "starlette",
-  "vellox",
-  "firebase_functions",
   "asgi-lifespan",
+  "uvicorn",
+  ]
+
+browser = [
+  "pyppeteer",
+  "seleniumbase",
+  "playwright",
 ]
 
 cli = [
-  "firebase-admin",
   "typer",
-  "pyppeteer",
-  "seleniumbase",
-  "uvicorn",
-  "starlette",
 ]
 
 dev = [

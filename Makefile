@@ -8,10 +8,12 @@ export IMAGE_REPOSITORY=asia-east1-docker.pkg.dev/crawler-kit/crawler-kit/test
 	test \
 	deploy \
 	install \
+	install-full \
 	tree \
 	freeze \
 	build \
-	push
+	push \
+	clean
 
 format:
 	@uvx ruff format .
@@ -23,19 +25,26 @@ lint:
 	@uvx ruff check .
 
 test:
-	@uv run pytest -k "test_upload_pdf"
+	@uv run pytest
 
 deploy:
 	@firebase deploy --only functions
 
 install:
-	@uv pip install -e ".[firebase,cli,dev]"
+	@uv pip install -e ".[cloud,cli,dev]"
+
+install-full:
+	@uv pip install -e ".[cloud,workflow,web,browser,cli,dev]"
 
 tree:
 	@tree -I 'build|__pycache__|*.egg-info|venv|.venv|*.log|downloaded_files|CapSolver.Browser.Extension-v1.16'
 
 freeze:
-	@uv pip compile pyproject.toml --extra firebase > src/requirements.txt
+	@uv pip compile pyproject.toml --extra cloud > src/requirements.txt
+
+clean:
+	@rm -rf build/ dist/ *.egg-info/ __pycache__/ .pytest_cache/
+	@find . -name "*.pyc" -delete
 
 push:
 	@docker push $(IMAGE_REPOSITORY):latest
