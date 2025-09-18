@@ -46,29 +46,21 @@ class EbayStorageService:
             "crawled_at": firestore.SERVER_TIMESTAMP,
             "content_len": len(content),
         }
-        try:
-            collection = self.db.collection(self._build_firestore_path())
-            doc_ref = collection.document()
-            doc_ref.set(doc_data)
+        
+        collection = self.db.collection(self._build_firestore_path())
+        doc_ref = collection.document()
+        doc_ref.set(doc_data)
 
-            logger.info(f"Successfully saved data for URL: {url}")
-            return doc_ref.id
-        except Exception as e:
-            logger.error(f"Error saving to Firestore: {e}")
-            raise StorageError(f"Error saving to Firestore: {e}")
+        logger.info(f"Successfully saved data for URL: {url}")
+        return doc_ref.id
 
     def check_url_exists(self, url: str) -> Optional[str]:
-        try:
-            collection = self.db.collection(self._build_firestore_path())
-            docs = collection.where("url", "==", url).limit(1).get()
+        collection = self.db.collection(self._build_firestore_path())
+        docs = collection.where("url", "==", url).limit(1).get()
 
-            if docs:
-                doc_id = docs[0].id
-                logger.info(f"URL already exists in Firestore: {url}, doc_id: {doc_id}")
-                return doc_id
+        if docs:
+            doc_id = docs[0].id
+            logger.info(f"URL already exists in Firestore: {url}, doc_id: {doc_id}")
+            return doc_id
 
-            return None
-
-        except Exception as e:
-            logger.error(f"Error checking URL existence: {e}")
-            raise StorageError(f"Error checking URL existence: {e}")
+        return None
