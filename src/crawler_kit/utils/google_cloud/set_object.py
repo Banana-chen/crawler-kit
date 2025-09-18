@@ -14,7 +14,7 @@ except ValueError:
     initialize_app(credentials, {"storageBucket": STORAGE_BUCKET})
 
 
-def set_object(key: str, obj: Any, content_type: str = "application/octet-stream"):
+def set_object(key: str, obj: Any, content_type: str = "image/jpeg"):
     bucket = storage.bucket()
     blob = bucket.blob(key)
 
@@ -24,13 +24,9 @@ def set_object(key: str, obj: Any, content_type: str = "application/octet-stream
         blob.upload_from_string(obj, content_type=content_type)
     else:
         raise TypeError(f"Unsupported data type: {type(obj)}")
-
-
-def save_screenshot(key: str, image_data: bytes) -> None:
-    bucket = storage.bucket()
-    blob = bucket.blob(key)
-    blob.upload_from_string(image_data, content_type="image/png")
-
+    
+    blob.metadata = {"contentDisposition": "inline"}
+    blob.patch()
 
 def get_object(key: str) -> bytes:
     bucket = storage.bucket()
