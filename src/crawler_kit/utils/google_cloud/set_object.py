@@ -24,9 +24,10 @@ def set_object(key: str, obj: Any, content_type: str = "image/jpeg"):
         blob.upload_from_string(obj, content_type=content_type)
     else:
         raise TypeError(f"Unsupported data type: {type(obj)}")
-    
+
     blob.metadata = {"contentDisposition": "inline"}
     blob.patch()
+
 
 def get_object(key: str) -> bytes:
     bucket = storage.bucket()

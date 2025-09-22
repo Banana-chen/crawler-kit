@@ -11,10 +11,7 @@ logger = logging.getLogger(__name__)
 
 class SeleniumBaseManager:
     @classmethod
-    def create_driver(cls, 
-                      browser: str,
-                      headless: bool,
-                      **kwargs) -> Driver:
+    def create_driver(cls, browser: str, headless: bool, **kwargs) -> Driver:
         driver_options = {"browser": browser, "headless": headless, **kwargs}
 
         start_time = time.time()
