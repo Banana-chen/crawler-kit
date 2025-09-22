@@ -1,24 +1,28 @@
-from crawler_kit.modules.pchome.application.commands.pchome_crawler import PchomeCrawler
-from crawler_kit.modules.pchome.application.commands.pchome_parser import PchomeParser
-from crawler_kit.modules.pchome.application.commands.pchome_storage_service import (
-    PchomeStorageService,
-    StorageError,
+import time
+from crawler_kit.infrastructure.webdriver.seleniumbase_manager import (
+    SeleniumBaseManager,
 )
+from crawler_kit.modules.general.enums.driver_config import DriverConfig
+from crawler_kit.infrastructure.converts.png.to_jpg import png_to_jpg
+from crawler_kit.modules.pchome.domain.pchome_parser import PchomeParser
+from adapters.documents.pchome_storage_service import PchomeStorageService
 from crawler_kit.modules.general.dtos.crawl_result import CrawlResult
 from prefect.cache_policies import NO_CACHE
 from prefect import flow, task, get_run_logger
+from crawler_kit.modules.exceptions.crawling import WebPageFetchError
+from crawler_kit.modules.exceptions.parsing import ContentParseError
+from crawler_kit.modules.exceptions.storage import DocumentStorageError
 
 
-class CrawlerError(Exception):
-    pass
 
 
 class PchomeWebCrawler:
     def __init__(self, request_delay: int, trace_id: str):
-        self.crawler = PchomeCrawler(request_delay)
+        self.request_delay = request_delay
+        self.trace_id = trace_id
+        self.enable_screenshot = enable_screenshot
         self.parser = PchomeParser()
         self.storage = PchomeStorageService()
-        self.trace_id = trace_id
 
     @flow(name="crawl-pchome-web")
     def __call__(
@@ -38,35 +42,46 @@ class PchomeWebCrawler:
             logger.info(f"Successfully processed URL: {url}")
             return result
 
-        except (CrawlerError, StorageError) as e:
+        except (WebPageFetchError, ContentParseError, DocumentStorageError) as e:
             logger.error(f"Error processing URL {url}: {e}")
-            return CrawlResult(url=url, content="")
+            raise e
         except Exception as e:
             logger.error(f"Unexpected error processing URL {url}: {e}")
-            return CrawlResult(url=url, content="")
+            raise e
 
     @task(name="crawl-and-parse", cache_policy=NO_CACHE)
     def _crawl_and_parse(self, url: str, parse_content: bool = True) -> CrawlResult:
         logger = get_run_logger()
         logger.info(f"Crawling content from: {url}")
-
-        crawl_result = self.crawler.crawl_page(url)
-        if not crawl_result:
-            raise CrawlerError(f"Failed to crawl content from URL: {url}")
+        
+        with self._get_driver() as driver:
+            driver.get(url)
+            time.sleep(self.request_delay)
+            content = driver.page_source
+            screenshot = (
+                self._take_screenshot(driver) if self.enable_screenshot else b""
+            )
 
         parsed_data = None
         if parse_content:
             logger.info(f"Parsing content for: {url}")
-            parsed_data = self.parser.parse_product_page(crawl_result.content)
+            parsed_data = self.parser.parse_product_page(content)
             if not parsed_data:
-                raise CrawlerError("Failed to parse page content")
+                raise ContentParseError("Failed to parse page content")
 
         return CrawlResult(
             url=url,
-            content=crawl_result.content,
+            content=content,
             parsed_data=parsed_data,
-            screenshot=crawl_result.screenshot,
+            screenshot=screenshot,
         )
+        
+    @task(name="take-screenshot", cache_policy=NO_CACHE)
+    def _take_screenshot(self, driver) -> bytes:
+        logger = get_run_logger()
+        logger.info("Taking screenshot")
+        screenshot_data = driver.get_screenshot_as_png()
+        return png_to_jpg(screenshot_data)
 
     @task(name="save-crawl-result", cache_policy=NO_CACHE)
     def _save_result(self, crawl_data: CrawlResult) -> None:
@@ -81,6 +96,9 @@ class PchomeWebCrawler:
                 screenshot=crawl_data.screenshot,
             )
 
-        except StorageError as e:
+        except DocumentStorageError as e:
             logger.error(f"Error saving crawl result for URL {crawl_data.url}: {e}")
-            raise CrawlerError(f"Failed to save crawl result for URL: {crawl_data.url}")
+            raise DocumentStorageError(f"Failed to save crawl result for URL: {crawl_data.url}")
+
+    def _get_driver(self):
+        return SeleniumBaseManager.get_driver(**DriverConfig.Pchome.value)
