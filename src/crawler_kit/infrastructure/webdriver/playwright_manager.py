@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class PlaywrightManager:
-    
     @classmethod
     @asynccontextmanager
     async def get_page(
@@ -19,25 +18,29 @@ class PlaywrightManager:
         headless: bool = False,
         use_system_browser: bool = False,
         window_size: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncGenerator[Page, None]:
         start_time = time.time()
-        
+
         if use_system_browser and browser == "chromium":
-            kwargs["executable_path"] = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-        
+            kwargs["executable_path"] = (
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+            )
+
         async with async_playwright() as p:
-            browser_instance = await getattr(p, browser).launch(headless=headless, **kwargs)
-            
+            browser_instance = await getattr(p, browser).launch(
+                headless=headless, **kwargs
+            )
+
             page_options = {}
             if window_size:
-                w, h = map(int, window_size.split(','))
-                page_options['viewport'] = {'width': w, 'height': h}
-            
+                w, h = map(int, window_size.split(","))
+                page_options["viewport"] = {"width": w, "height": h}
+
             page = await browser_instance.new_page(**page_options)
-            
+
             logger.info(f"Browser ready in {time.time() - start_time:.2f}s")
-            
+
             try:
                 yield page
             finally:
@@ -47,21 +50,25 @@ class PlaywrightManager:
     @asynccontextmanager
     async def get_browser(
         cls,
-        browser: str = "chromium", 
+        browser: str = "chromium",
         headless: bool = False,
         use_system_browser: bool = False,
-        **kwargs
+        **kwargs,
     ) -> AsyncGenerator[Browser, None]:
         start_time = time.time()
-        
+
         if use_system_browser and browser == "chromium":
-            kwargs["executable_path"] = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-        
+            kwargs["executable_path"] = (
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+            )
+
         async with async_playwright() as p:
-            browser_instance = await getattr(p, browser).launch(headless=headless, **kwargs)
-            
+            browser_instance = await getattr(p, browser).launch(
+                headless=headless, **kwargs
+            )
+
             logger.info(f"Browser ready in {time.time() - start_time:.2f}s")
-            
+
             try:
                 yield browser_instance
             finally:
@@ -73,9 +80,11 @@ async def main():
         browser="chromium",
         headless=False,
         use_system_browser=True,
-        window_size="1920,1080"
+        window_size="1920,1080",
     ) as page:
-        await page.goto("https://medium.com/@mkaanaslan99/time-series-forecasting-with-a-basic-transformer-model-in-pytorch-650f116a1018")
+        await page.goto(
+            "https://medium.com/@mkaanaslan99/time-series-forecasting-with-a-basic-transformer-model-in-pytorch-650f116a1018"
+        )
         state = await page.context.storage_state()
         print(state)
         await asyncio.sleep(5)
